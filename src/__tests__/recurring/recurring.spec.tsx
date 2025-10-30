@@ -25,7 +25,11 @@ const setup = (element: ReactElement) => {
 
 describe('반복 일정 기능 - 반복 유형 선택', () => {
   it('일정 생성, 수정 시 반복 유형을 선택할 수 있다', async () => {
-
+    const { user } = setup(<App />);
+      
+    const repeatCheckbox = screen.getByRole('checkbox', { name: '반복 일정' });
+    await user.click(repeatCheckbox);
+    
+    expect(screen.getByRole('combobox', { name: /반복 유형/i })).toBeInTheDocument();
   });
 });
-
