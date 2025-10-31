@@ -1,6 +1,6 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { SnackbarProvider } from 'notistack';
 import { ReactElement } from 'react';
@@ -36,39 +36,118 @@ describe('반복 일정 기능 - 반복 유형 선택', () => {
   it("반복 유형 선택 컨트롤에서 매일을 선택할 수 있어야 한다", async () => {
     // [RED]
     // Given: 반복 유형 선택 컨트롤이 표시된 상태
+    const { user } = setup(<App />);
+    
+    // 반복 일정 활성화
+    const repeatCheckbox = screen.getByRole('checkbox', { name: '반복 일정' });
+    await user.click(repeatCheckbox);
     
     // When: 반복 유형 Select를 클릭
+    await waitFor(() => {
+      const repeatTypeSelect = screen.getByRole('combobox', { name: /반복 유형/i });
+      expect(repeatTypeSelect).toBeInTheDocument();
+    });
+    
+    const repeatTypeSelect = screen.getByRole('combobox', { name: /반복 유형/i });
+    await user.click(repeatTypeSelect);
+    
+    // 매일 옵션을 클릭
+    const dailyOption = screen.getByRole('option', { name: /매일/i });
+    await user.click(dailyOption);
     
     // Then: 매일 옵션이 선택 상태가 되어야 함
+    await waitFor(() => {
+      expect(repeatTypeSelect).toHaveTextContent(/매일/i);
+    });
   });
 
   it("반복 유형 선택 컨트롤에서 매주를 선택할 수 있어야 한다", async () => {
     // [RED]
     // Given: 반복 유형 선택 컨트롤이 표시된 상태
-
+    const { user } = setup(<App />);
+    
+    // 반복 일정 활성화
+    const repeatCheckbox = screen.getByRole('checkbox', { name: '반복 일정' });
+    await user.click(repeatCheckbox);
+    
     // When: 반복 유형 Select를 클릭
+    await waitFor(() => {
+      const repeatTypeSelect = screen.getByRole('combobox', { name: /반복 유형/i });
+      expect(repeatTypeSelect).toBeInTheDocument();
+    });
+    
+    const repeatTypeSelect = screen.getByRole('combobox', { name: /반복 유형/i });
+    await user.click(repeatTypeSelect);
+    
+    // 매주 옵션을 클릭
+    const weeklyOption = screen.getByRole('option', { name: /매주/i });
+    await user.click(weeklyOption);
     
     // Then: 매주 옵션이 선택 상태가 되어야 함
+    await waitFor(() => {
+      expect(repeatTypeSelect).toHaveTextContent(/매주/i);
+    });
   });
 
   it("반복 유형 선택 컨트롤에서 매월을 선택할 수 있어야 한다", async () => {
     // [RED]
     // Given: 반복 유형 선택 컨트롤이 표시된 상태
+    const { user } = setup(<App />);
+    
+    // 반복 일정 활성화
+    const repeatCheckbox = screen.getByRole('checkbox', { name: '반복 일정' });
+    await user.click(repeatCheckbox);
     
     // When: 반복 유형 Select를 클릭
+    await waitFor(() => {
+      const repeatTypeSelect = screen.getByRole('combobox', { name: /반복 유형/i });
+      expect(repeatTypeSelect).toBeInTheDocument();
+    });
+    
+    const repeatTypeSelect = screen.getByRole('combobox', { name: /반복 유형/i });
+    await user.click(repeatTypeSelect);
+    
+    // 매월 옵션을 클릭
+    const monthlyOption = screen.getByRole('option', { name: /매월/i });
+    await user.click(monthlyOption);
     
     // Then: 매월 옵션이 선택 상태가 되어야 함
+    await waitFor(() => {
+      expect(repeatTypeSelect).toHaveTextContent(/매월/i);
+    });
   });
 
   it("반복 유형 선택 컨트롤에서 매년을 선택할 수 있어야 한다", async () => {
     // [RED]
     // Given: 반복 유형 선택 컨트롤이 표시된 상태
+    const { user } = setup(<App />);
+    
+    // 반복 일정 활성화
+    const repeatCheckbox = screen.getByRole('checkbox', { name: '반복 일정' });
+    await user.click(repeatCheckbox);
     
     // When: 반복 유형 Select를 클릭
+    await waitFor(() => {
+      const repeatTypeSelect = screen.getByRole('combobox', { name: /반복 유형/i });
+      expect(repeatTypeSelect).toBeInTheDocument();
+    });
+    
+    const repeatTypeSelect = screen.getByRole('combobox', { name: /반복 유형/i });
+    await user.click(repeatTypeSelect);
+    
+    // 매년 옵션을 클릭
+    const yearlyOption = screen.getByRole('option', { name: /매년/i });
+    await user.click(yearlyOption);
     
     // Then: 매년 옵션이 선택 상태가 되어야 함
+    await waitFor(() => {
+      expect(repeatTypeSelect).toHaveTextContent(/매년/i);
+    });
   });
 });
+
+
+
 
 // describe('반복 일정 기능 - 반복 유형 선택 (예외 규칙)', () => {
   
