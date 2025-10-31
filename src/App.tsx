@@ -41,6 +41,7 @@ import {
   formatDate,
   formatMonth,
   formatWeek,
+  generateRepeatDates,
   getEventsForDay,
   getWeekDates,
   getWeeksAtMonth,
@@ -94,7 +95,7 @@ function App() {
     editEvent,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent } = useEventOperations(Boolean(editingEvent), () =>
+  const { events, saveEvent, deleteEvent, fetchEvents } = useEventOperations(Boolean(editingEvent), () =>
     setEditingEvent(null)
   );
 
@@ -140,8 +141,46 @@ function App() {
       setOverlappingEvents(overlapping);
       setIsOverlapDialogOpen(true);
     } else {
-      await saveEvent(eventData);
-      resetForm();
+      // 반복 일정이고 편집하지 않는 경우, 여러 인스턴스 생성
+      if (isRepeating && !editingEvent) {
+        const repeatDates = generateRepeatDates(
+          date,
+          repeatType,
+          repeatInterval,
+          repeatEndDate || undefined
+        );
+
+        const repeatingEvents = repeatDates.map((repeatDate) => ({
+          ...eventData,
+          date: repeatDate,
+          id: undefined, // 서버에서 생성
+        }));
+
+        // 반복 일정 저장 (여러 인스턴스)
+        try {
+          const response = await fetch('/api/events-list', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ events: repeatingEvents }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to save repeat events');
+          }
+
+          // 이벤트 목록 다시 불러오기
+          await fetchEvents();
+          enqueueSnackbar('일정이 추가되었습니다.', { variant: 'success' });
+          resetForm();
+        } catch (error) {
+          console.error('Error saving repeat events:', error);
+          enqueueSnackbar('일정 저장 실패', { variant: 'error' });
+        }
+      } else {
+        // 단일 일정 또는 편집 시 기존 로직
+        await saveEvent(eventData);
+        resetForm();
+      }
     }
   };
 
@@ -455,8 +494,9 @@ function App() {
               </FormControl>
               <Stack direction="row" spacing={2}>
                 <FormControl fullWidth>
-                  <FormLabel>반복 간격</FormLabel>
+                  <FormLabel htmlFor="repeat-interval">반복 간격</FormLabel>
                   <TextField
+                    id="repeat-interval"
                     size="small"
                     type="number"
                     value={repeatInterval}
@@ -465,8 +505,9 @@ function App() {
                   />
                 </FormControl>
                 <FormControl fullWidth>
-                  <FormLabel>반복 종료일</FormLabel>
+                  <FormLabel htmlFor="repeat-end-date">반복 종료일</FormLabel>
                   <TextField
+                    id="repeat-end-date"
                     size="small"
                     type="date"
                     value={repeatEndDate}
