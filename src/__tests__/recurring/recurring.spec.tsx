@@ -311,9 +311,70 @@ describe('윤년 29일 선택 규칙', () => {
 
   it('윤년 2월 29일에 매년을 선택하면 29일에만 생성된다 (윤년에만)', async () => {
     // Given: Mock handler 설정
-    // When: 추가 버튼 클릭 
+    const mockEvents: Event[] = [];
+
+    server.use(
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: mockEvents });
+      }),
+      http.post('/api/events-list', async ({ request }) => {
+        const body = (await request.json()) as { events: Event[] };
+        mockEvents.push(...body.events);
+        return HttpResponse.json({ events: body.events }, { status: 201 });
+      })
+    );
+
+    const { user } = setup(<App />);
+    
+    // 로딩 완료 대기
+    await screen.findByText('일정 로딩 완료!');
+    
+    // 일정 정보 입력
+    const titleInput = screen.getByLabelText('제목');
+    await user.type(titleInput, '윤년 이벤트');
+    
+    const dateInput = screen.getByLabelText('날짜');
+    await user.clear(dateInput);
+    await user.type(dateInput, '2024-02-29');
+    
+    const startTimeInput = screen.getByLabelText('시작 시간');
+    await user.clear(startTimeInput);
+    await user.type(startTimeInput, '09:00');
+    
+    const endTimeInput = screen.getByLabelText('종료 시간');
+    await user.clear(endTimeInput);
+    await user.type(endTimeInput, '10:00');
+    
+    // 반복 일정 활성화
+    const repeatCheckbox = screen.getByRole('checkbox', { name: '반복 일정' });
+    await user.click(repeatCheckbox);
+    
+    // 반복 유형 선택 - 매년
+    const repeatTypeSelect = screen.getByRole('combobox', { name: /반복 유형/i });
+    await user.click(repeatTypeSelect);
+    const yearlyOption = screen.getByRole('option', { name: /매년/i });
+    await user.click(yearlyOption);
+    
+    // 반복 종료일 설정 - 2028년 2월 29일 (4년 동안 윤년만: 2024, 2028)
+    const endDateInput = screen.getByLabelText(/반복 종료일/i);
+    await user.clear(endDateInput);
+    await user.type(endDateInput, '2028-02-29');
+    
+    // When: 추가 버튼 클릭
+    const addButton = screen.getByRole('button', { name: /추가/i });
+    await user.click(addButton);
+    
     // Then: 성공 메시지 확인
+    await screen.findByText(/일정이 추가되었습니다/i);
+    
+    // 일정이 실제로 생성되었는지 확인 - mockEvents에 2개의 일정이 있어야 함 (2024, 2028)
+    expect(mockEvents.length).toBe(2);
+    
+    // 각 일정의 날짜 검증 - 윤년에만 2월 29일 생성
+    const dates = mockEvents.map(e => e.date).sort();
+    expect(dates).toEqual(['2024-02-29', '2028-02-29']);
+    
+    // 모든 일정이 "윤년 이벤트" 제목을 가져야 함
+    expect(mockEvents.every(e => e.title === '윤년 이벤트')).toBe(true);
   });
 });
-
-
