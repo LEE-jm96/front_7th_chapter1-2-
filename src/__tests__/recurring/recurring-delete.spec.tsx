@@ -58,6 +58,7 @@ describe('반복 일정 기능 - 반복 일정 삭제', () => {
         notificationTime: 10,
       },
     ];
+    
 
     server.use(
       http.get('/api/events', () => {
@@ -77,9 +78,9 @@ describe('반복 일정 기능 - 반복 일정 삭제', () => {
 
     await screen.findByText('일정 로딩 완료!');
 
-    // 초기: 반복 일정이 2개 표시됨
-    const initialElements = screen.getAllByText('주간 회의');
-    expect(initialElements.length).toBeGreaterThan(0);
+    // 초기: 반복 일정이 2개 표시됨 (Delete 버튼으로 카운트)
+    const initialDeleteButtons = screen.getAllByLabelText('Delete event');
+    expect(initialDeleteButtons.length).toBeGreaterThan(0);
 
     // 첫 번째 일정의 삭제 버튼 클릭
     const deleteButtons = screen.getAllByLabelText('Delete event');
@@ -95,8 +96,8 @@ describe('반복 일정 기능 - 반복 일정 삭제', () => {
 
     // Then: 한 개의 일정만 삭제되고, 나머지 반복 일정은 유지됨
     await waitFor(() => {
-      const remainingElements = screen.queryAllByText('주간 회의');
-      expect(remainingElements.length).toBe(1);
+      const remainingDeleteButtons = screen.getAllByLabelText('Delete event');
+      expect(remainingDeleteButtons.length).toBe(1);
     });
   });
 
@@ -130,9 +131,6 @@ describe('반복 일정 기능 - 반복 일정 삭제', () => {
     ];
 
     server.use(
-      http.get('/api/events', () => {
-        return HttpResponse.json({ events: mockEvents });
-      }),
       http.delete('/api/recurring-events/:repeatId', ({ params }) => {
         const { repeatId } = params;
         const initialLength = mockEvents.length;
@@ -145,16 +143,21 @@ describe('반복 일정 기능 - 반복 일정 삭제', () => {
         mockEvents.length = 0;
         mockEvents.push(...remainingEvents);
         return new HttpResponse(null, { status: 204 });
-      })
+      }),
+
+      http.get('/api/events', () => {
+        return HttpResponse.json({ events: mockEvents });
+      }),
     );
 
     const { user } = setup(<App />);
 
     await screen.findByText('일정 로딩 완료!');
 
-    // 초기: 반복 일정이 2개 표시됨
-    const initialElements = screen.getAllByText('주간 회의');
-    expect(initialElements.length).toBeGreaterThan(1);
+    // 초기: 반복 일정이 2개 표시됨 (Delete 버튼으로 카운트)
+    const initialDeleteButtons = screen.getAllByLabelText('Delete event');
+    console.log(initialDeleteButtons.length)
+    expect(initialDeleteButtons.length).toBeGreaterThan(1);
 
     // 첫 번째 일정의 삭제 버튼 클릭
     const deleteButtons = screen.getAllByLabelText('Delete event');
@@ -170,8 +173,8 @@ describe('반복 일정 기능 - 반복 일정 삭제', () => {
 
     // Then: 반복 일정 시리즈의 모든 일정이 삭제됨
     await waitFor(() => {
-      const remainingElements = screen.queryAllByText('주간 회의');
-      expect(remainingElements).toHaveLength(0);
+      const remainingDeleteButtons = screen.queryAllByLabelText('Delete event');
+      expect(remainingDeleteButtons).toHaveLength(0);
     });
   });
 });
