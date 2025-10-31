@@ -35,9 +35,30 @@ export function generateRepeatDates(
   }
 
   let current = new Date(start);
+  const startDay = start.getDate();
+  const startMonth = start.getMonth();
+
+  // 윤년 판별 함수
+  const isLeapYear = (year: number): boolean => {
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  };
 
   while (current <= end) {
-    dates.push(formatDate(current));
+    // 월별 반복에서 31일 설정 시, 실제 현재 날짜가 31일일 때만 추가
+    // (31일이 없는 달에서는 자동으로 다음 달이 되므로 확인)
+    if (repeatType === 'monthly' && startDay === 31) {
+      if (current.getDate() === 31) {
+        dates.push(formatDate(current));
+      }
+    } else if (repeatType === 'yearly' && startMonth === 1 && startDay === 29) {
+      // 윤년 2월 29일 설정 시, 윤년에만 생성
+      const year = current.getFullYear();
+      if (isLeapYear(year)) {
+        dates.push(formatDate(current));
+      }
+    } else {
+      dates.push(formatDate(current));
+    }
 
     // 반복 유형에 따라 다음 날짜 계산
     switch (repeatType) {
@@ -48,10 +69,20 @@ export function generateRepeatDates(
         current.setDate(current.getDate() + 7 * interval);
         break;
       case 'monthly':
+        // 월별 반복: 날짜 손실 방지 (예: 1월 31일 → 2월 31일 없음 → 3월 3일 오버플로우)
+        // 1. 날짜를 1일로 설정
+        current.setDate(1);
+        // 2. 월 증가
         current.setMonth(current.getMonth() + interval);
+        // 3. 목표 달의 일수 확인
+        const daysInMonth = getDaysInMonth(current.getFullYear(), current.getMonth() + 1);
+        // 4. 원래 날짜 또는 해당 달의 마지막 일로 설정
+        current.setDate(Math.min(startDay, daysInMonth));
         break;
       case 'yearly':
-        current.setFullYear(current.getFullYear() + interval);
+        // 연별 반복: 날짜 손실 방지 (예: 2024-02-29 → 2025-02-29 불가)
+        // setFullYear(year, month, day) 형식으로 연도와 함께 원래 날짜 설정
+        current.setFullYear(current.getFullYear() + interval, startMonth, startDay);
         break;
     }
   }
