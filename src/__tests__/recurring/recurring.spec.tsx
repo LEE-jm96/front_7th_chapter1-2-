@@ -146,6 +146,22 @@ describe('반복 일정 기능 - 반복 유형 선택', () => {
   });
 });
 
+describe('매월 31일 선택 규칙', () => {
+  beforeEach(() => {
+    server.resetHandlers();
+  });
+
+  it('31일에 매월을 선택하면 31일에만 생성된다 (월말이 아닌 31일 고정)', async () => {
+    // Given: Mock handler 설정
+    // When: 추가 버튼 클릭
+    // Then: 성공 메시지 확인
+  });
+});
+
+
+
+
+
 
 
 
