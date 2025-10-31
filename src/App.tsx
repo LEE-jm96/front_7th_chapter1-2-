@@ -93,6 +93,8 @@ function App() {
     handleEndTimeChange,
     resetForm,
     editEvent,
+    isEditModeDialogOpen,
+    setIsEditModeDialogOpen,
   } = useEventForm();
 
   const { events, saveEvent, deleteEvent, fetchEvents } = useEventOperations(Boolean(editingEvent), () =>
@@ -107,6 +109,38 @@ function App() {
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
 
   const { enqueueSnackbar } = useSnackbar();
+
+  /**
+   * 반복 일정 편집 모드 선택 처리
+   * @param mode 'single': 해당 일정만 수정 (반복 제거), 'full': 전체 반복 일정 수정
+   */
+  const handleEditModeChoice = async (mode: 'single' | 'full') => {
+    setIsEditModeDialogOpen(false);
+
+    // 이벤트 데이터 구성 (mode에 따라 반복 설정 결정)
+    const eventData: Event | EventForm = {
+      id: editingEvent ? editingEvent.id : undefined,
+      title,
+      date,
+      startTime,
+      endTime,
+      description,
+      location,
+      category,
+      repeat: mode === 'single' 
+        ? { type: 'none', interval: 1 }  // 단일 수정: 반복 제거
+        : {  // 전체 수정: 반복 설정 유지
+            type: isRepeating ? repeatType : 'none',
+            interval: repeatInterval,
+            endDate: repeatEndDate || undefined,
+          },
+      notificationTime,
+    };
+
+    // 이벤트 저장
+    await saveEvent(eventData);
+    resetForm();
+  };
 
   const addOrUpdateEvent = async () => {
     if (!title || !date || !startTime || !endTime) {
@@ -671,6 +705,19 @@ function App() {
           >
             계속 진행
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isEditModeDialogOpen} onClose={() => setIsEditModeDialogOpen(false)}>
+        <DialogTitle>반복 일정 수정</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            해당 일정만 수정하시겠어요?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleEditModeChoice('single')}>예</Button>
+          <Button onClick={() => handleEditModeChoice('full')}>아니오</Button>
         </DialogActions>
       </Dialog>
 
