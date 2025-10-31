@@ -304,4 +304,16 @@ describe('매월 31일 선택 규칙', () => {
 //   });
 
 // });
+describe('윤년 29일 선택 규칙', () => {
+  beforeEach(() => {
+    server.resetHandlers();
+  });
+
+  it('윤년 2월 29일에 매년을 선택하면 29일에만 생성된다 (윤년에만)', async () => {
+    // Given: Mock handler 설정
+    // When: 추가 버튼 클릭 
+    // Then: 성공 메시지 확인
+  });
+});
+
 
