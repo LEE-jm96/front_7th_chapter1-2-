@@ -1,4 +1,12 @@
-import { Notifications, ChevronLeft, ChevronRight, Delete, Edit, Close, Repeat } from '@mui/icons-material';
+import {
+  Notifications,
+  ChevronLeft,
+  ChevronRight,
+  Delete,
+  Edit,
+  Close,
+  Repeat,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -97,8 +105,9 @@ function App() {
     setIsEditModeDialogOpen,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent, fetchEvents } = useEventOperations(Boolean(editingEvent), () =>
-    setEditingEvent(null)
+  const { events, saveEvent, deleteEvent, fetchEvents } = useEventOperations(
+    Boolean(editingEvent),
+    () => setEditingEvent(null)
   );
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
@@ -129,13 +138,14 @@ function App() {
       description,
       location,
       category,
-      repeat: mode === 'single' 
-        ? { type: 'none', interval: 1 }  // 단일 수정: 반복 제거
-        : {  // 전체 수정: 반복 설정 유지
-            type: isRepeating ? repeatType : 'none',
-            interval: repeatInterval,
-            endDate: repeatEndDate || undefined,
-          },
+      repeat:
+        mode === 'single'
+          ? { type: 'none', interval: 1 }
+          : {
+              type: isRepeating ? repeatType : 'none',
+              interval: repeatInterval,
+              endDate: repeatEndDate || undefined,
+            },
       notificationTime,
     };
 
@@ -543,7 +553,7 @@ function App() {
 
           {isRepeating && (
             <Stack spacing={2}>
-                <FormControl fullWidth>
+              <FormControl fullWidth>
                 <FormLabel id="repeat-type-label">반복 유형</FormLabel>
                 <Select
                   labelId="repeat-type-label"
@@ -752,9 +762,7 @@ function App() {
       <Dialog open={isEditModeDialogOpen} onClose={() => setIsEditModeDialogOpen(false)}>
         <DialogTitle>반복 일정 수정</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            해당 일정만 수정하시겠어요?
-          </DialogContentText>
+          <DialogContentText>해당 일정만 수정하시겠어요?</DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => handleEditModeChoice('single')}>예</Button>
@@ -765,9 +773,7 @@ function App() {
       <Dialog open={isDeleteModeDialogOpen} onClose={() => setIsDeleteModeDialogOpen(false)}>
         <DialogTitle>반복 일정 삭제</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            해당 일정만 삭제하시겠어요?
-          </DialogContentText>
+          <DialogContentText>해당 일정만 삭제하시겠어요?</DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => handleDeleteModeChoice('single')}>예</Button>

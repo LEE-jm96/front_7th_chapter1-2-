@@ -68,7 +68,7 @@ export function generateRepeatDates(
       case 'weekly':
         current.setDate(current.getDate() + 7 * interval);
         break;
-      case 'monthly':
+      case 'monthly': {
         // 월별 반복: 날짜 손실 방지 (예: 1월 31일 → 2월 31일 없음 → 3월 3일 오버플로우)
         // 1. 날짜를 1일로 설정
         current.setDate(1);
@@ -79,6 +79,7 @@ export function generateRepeatDates(
         // 4. 원래 날짜 또는 해당 달의 마지막 일로 설정
         current.setDate(Math.min(startDay, daysInMonth));
         break;
+      }
       case 'yearly':
         // 연별 반복: 날짜 손실 방지 (예: 2024-02-29 → 2025-02-29 불가)
         // setFullYear(year, month, day) 형식으로 연도와 함께 원래 날짜 설정

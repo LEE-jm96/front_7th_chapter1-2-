@@ -38,9 +38,7 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
         // PUT 응답의 업데이트된 이벤트로 상태 직접 업데이트
         const updatedEvent = await response.json();
         setEvents((prevEvents) =>
-          prevEvents.map((event) =>
-            event.id === updatedEvent.id ? updatedEvent : event
-          )
+          prevEvents.map((event) => (event.id === updatedEvent.id ? updatedEvent : event))
         );
       } else {
         response = await fetch('/api/events', {
