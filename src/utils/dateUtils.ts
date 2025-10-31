@@ -8,6 +8,58 @@ export function getDaysInMonth(year: number, month: number): number {
 }
 
 /**
+ * 반복 설정에 따라 반복 날짜 배열을 생성합니다.
+ * @param startDate 시작 날짜 (YYYY-MM-DD 형식)
+ * @param repeatType 반복 유형 ('daily' | 'weekly' | 'monthly' | 'yearly')
+ * @param interval 반복 간격
+ * @param endDate 반복 종료 날짜 (YYYY-MM-DD 형식, 선택사항)
+ * @returns 반복 날짜 배열 (YYYY-MM-DD 형식)
+ */
+export function generateRepeatDates(
+  startDate: string,
+  repeatType: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'none',
+  interval: number = 1,
+  endDate?: string
+): string[] {
+  if (repeatType === 'none') {
+    return [startDate];
+  }
+
+  const dates: string[] = [];
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : new Date(start);
+
+  // endDate가 없으면 1년 후를 기본값으로 설정
+  if (!endDate) {
+    end.setFullYear(end.getFullYear() + 1);
+  }
+
+  let current = new Date(start);
+
+  while (current <= end) {
+    dates.push(formatDate(current));
+
+    // 반복 유형에 따라 다음 날짜 계산
+    switch (repeatType) {
+      case 'daily':
+        current.setDate(current.getDate() + interval);
+        break;
+      case 'weekly':
+        current.setDate(current.getDate() + 7 * interval);
+        break;
+      case 'monthly':
+        current.setMonth(current.getMonth() + interval);
+        break;
+      case 'yearly':
+        current.setFullYear(current.getFullYear() + interval);
+        break;
+    }
+  }
+
+  return dates;
+}
+
+/**
  * 주어진 날짜가 속한 주의 모든 날짜를 반환합니다.
  */
 export function getWeekDates(date: Date): Date[] {
