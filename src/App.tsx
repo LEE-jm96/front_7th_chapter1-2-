@@ -107,6 +107,8 @@ function App() {
 
   const [isOverlapDialogOpen, setIsOverlapDialogOpen] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
+  const [isDeleteModeDialogOpen, setIsDeleteModeDialogOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -140,6 +142,35 @@ function App() {
     // 이벤트 저장
     await saveEvent(eventData);
     resetForm();
+  };
+
+  const handleDeleteModeChoice = async (mode: 'single' | 'full') => {
+    setIsDeleteModeDialogOpen(false);
+
+    if (!eventToDelete) return;
+
+    try {
+      if (mode === 'single') {
+        const response = await fetch('/api/events/' + eventToDelete.id, { method: 'DELETE' });
+        if (!response.ok) {
+          throw new Error('Failed to delete event');
+        }
+      } else {
+        const response = await fetch('/api/recurring-events/' + eventToDelete.repeat.id, {
+          method: 'DELETE',
+        });
+        if (!response.ok) {
+          throw new Error('Failed to delete recurring events');
+        }
+      }
+
+      await fetchEvents();
+      enqueueSnackbar('일정이 삭제되었습니다.', { variant: 'info' });
+      setEventToDelete(null);
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      enqueueSnackbar('일정 삭제 실패', { variant: 'error' });
+    }
   };
 
   const addOrUpdateEvent = async () => {
@@ -655,7 +686,17 @@ function App() {
                     <IconButton aria-label="Edit event" onClick={() => editEvent(event)}>
                       <Edit />
                     </IconButton>
-                    <IconButton aria-label="Delete event" onClick={() => deleteEvent(event.id)}>
+                    <IconButton
+                      aria-label="Delete event"
+                      onClick={() => {
+                        if (event.repeat.type !== 'none') {
+                          setEventToDelete(event);
+                          setIsDeleteModeDialogOpen(true);
+                        } else {
+                          deleteEvent(event.id);
+                        }
+                      }}
+                    >
                       <Delete />
                     </IconButton>
                   </Stack>
@@ -718,6 +759,19 @@ function App() {
         <DialogActions>
           <Button onClick={() => handleEditModeChoice('single')}>예</Button>
           <Button onClick={() => handleEditModeChoice('full')}>아니오</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isDeleteModeDialogOpen} onClose={() => setIsDeleteModeDialogOpen(false)}>
+        <DialogTitle>반복 일정 삭제</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            해당 일정만 삭제하시겠어요?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleDeleteModeChoice('single')}>예</Button>
+          <Button onClick={() => handleDeleteModeChoice('full')}>아니오</Button>
         </DialogActions>
       </Dialog>
 
