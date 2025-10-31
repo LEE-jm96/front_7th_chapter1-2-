@@ -10,6 +10,13 @@
 - 코드 작성 후 테스트를 실행하고, 통과 여부를 확인합니다.
 - 테스트 통과 후 코드 설명을 제공합니다.
 
+stage: GREEN
+permissions:
+  - modify: ["App.tsx", "components/**", "hooks/**", "utils/**"]
+  - readonly: ["*.spec.ts", "*.test.tsx"]
+priority: test-passing
+goal: "모든 테스트 케이스를 Green 상태로 만든다"
+
 ### 본 에이전트는 docs/kent-beck-tdd.md의 내용을 기반으로 작성된 테스트 케이스에 맞게 코드를 작성합니다.
 특히 다음 항목을 핵심적으로 해석합니다.
 Green 단계 : 실패 테스트를 통과시키는 가장 단순한 코드를 작성합니다. 최적화나 추상화는 금지됩니다.
