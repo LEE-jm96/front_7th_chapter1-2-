@@ -35,11 +35,8 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
           throw new Error('Failed to save event');
         }
 
-        // PUT 응답의 업데이트된 이벤트로 상태 직접 업데이트
-        const updatedEvent = await response.json();
-        setEvents((prevEvents) =>
-          prevEvents.map((event) => (event.id === updatedEvent.id ? updatedEvent : event))
-        );
+        // 수정 후 전체 목록 다시 불러오기
+        await fetchEvents();
       } else {
         response = await fetch('/api/events', {
           method: 'POST',
