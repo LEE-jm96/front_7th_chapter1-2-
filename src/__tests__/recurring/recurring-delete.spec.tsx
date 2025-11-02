@@ -141,7 +141,6 @@ describe('반복 일정 기능 - 반복 일정 삭제', () => {
         mockEvents.push(...remainingEvents);
         return new HttpResponse(null, { status: 204 });
       }),
-
       http.get('/api/events', () => {
         return HttpResponse.json({ events: mockEvents });
       })
