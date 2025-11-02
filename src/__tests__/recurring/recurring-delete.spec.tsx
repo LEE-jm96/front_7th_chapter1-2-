@@ -6,8 +6,8 @@ import { http, HttpResponse } from 'msw';
 import { SnackbarProvider } from 'notistack';
 import { ReactElement } from 'react';
 
-import { server } from '../../setupTests';
 import App from '../../App';
+import { server } from '../../setupTests';
 import { Event } from '../../types';
 
 const theme = createTheme();
@@ -58,7 +58,6 @@ describe('반복 일정 기능 - 반복 일정 삭제', () => {
         notificationTime: 10,
       },
     ];
-    
 
     server.use(
       http.get('/api/events', () => {
@@ -134,9 +133,7 @@ describe('반복 일정 기능 - 반복 일정 삭제', () => {
       http.delete('/api/recurring-events/:repeatId', ({ params }) => {
         const { repeatId } = params;
         const initialLength = mockEvents.length;
-        const remainingEvents = mockEvents.filter(
-          (event) => event.repeat.id !== repeatId
-        );
+        const remainingEvents = mockEvents.filter((event) => event.repeat.id !== repeatId);
         if (remainingEvents.length === initialLength) {
           return new HttpResponse(null, { status: 404 });
         }
@@ -144,10 +141,9 @@ describe('반복 일정 기능 - 반복 일정 삭제', () => {
         mockEvents.push(...remainingEvents);
         return new HttpResponse(null, { status: 204 });
       }),
-
       http.get('/api/events', () => {
         return HttpResponse.json({ events: mockEvents });
-      }),
+      })
     );
 
     const { user } = setup(<App />);
@@ -156,7 +152,7 @@ describe('반복 일정 기능 - 반복 일정 삭제', () => {
 
     // 초기: 반복 일정이 2개 표시됨 (Delete 버튼으로 카운트)
     const initialDeleteButtons = screen.getAllByLabelText('Delete event');
-    console.log(initialDeleteButtons.length)
+    console.log(initialDeleteButtons.length);
     expect(initialDeleteButtons.length).toBeGreaterThan(1);
 
     // 첫 번째 일정의 삭제 버튼 클릭
