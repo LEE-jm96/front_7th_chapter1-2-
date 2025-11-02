@@ -54,6 +54,7 @@ export const useEventForm = (initialEvent?: Event) => {
     setRepeatInterval(1);
     setRepeatEndDate('');
     setNotificationTime(10);
+    setEditingEvent(null);
     setEditMode(null);
     setIsEditModeDialogOpen(false);
   };
@@ -113,6 +114,7 @@ export const useEventForm = (initialEvent?: Event) => {
     resetForm,
     editEvent,
     editMode,
+    setEditMode,
     isEditModeDialogOpen,
     setIsEditModeDialogOpen,
   };

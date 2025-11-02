@@ -6,8 +6,8 @@ import { http, HttpResponse } from 'msw';
 import { SnackbarProvider } from 'notistack';
 import { ReactElement } from 'react';
 
-import { server } from '../../setupTests';
 import App from '../../App';
+import { server } from '../../setupTests';
 import { Event } from '../../types';
 
 const theme = createTheme();
@@ -29,7 +29,7 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
   describe('단일 수정 시나리오 ("예" 클릭)', () => {
     it('반복 일정 수정 모달에서 "예"를 클릭하면 해당 일정만 수정된다', async () => {
       // Given: 반복 일정이 존재하고 수정 대화상자가 열림
-      const mockEvents: Event[] = [
+      let mockEvents: Event[] = [
         {
           id: '1',
           title: '주간 회의',
@@ -47,6 +47,13 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
       server.use(
         http.get('/api/events', () => {
           return HttpResponse.json({ events: mockEvents });
+        }),
+        http.put('/api/events/:id', () => {
+          // PUT 요청 후 반복을 제거한 이벤트로 업데이트
+          mockEvents = mockEvents.map((event) =>
+            event.id === '1' ? { ...event, repeat: { type: 'none', interval: 1 } } : event
+          );
+          return HttpResponse.json(mockEvents[0]);
         })
       );
 
@@ -62,6 +69,10 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
       const singleEditButton = await screen.findByRole('button', { name: /예/i });
       await user.click(singleEditButton);
 
+      // 그 다음 "일정 수정" 버튼 클릭
+      const submitButton = screen.getByTestId('event-submit-button');
+      await user.click(submitButton);
+
       // Then: 단일 일정만 수정되고, 반복 설정은 제거됨
       await waitFor(() => {
         expect(screen.queryByText(/반복:/i)).not.toBeInTheDocument();
@@ -70,7 +81,7 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
 
     it('반복 일정을 단일 수정하면 반복일정 아이콘이 사라진다', async () => {
       // Given: 반복 아이콘이 있는 반복 일정
-      const mockEvents: Event[] = [
+      let mockEvents: Event[] = [
         {
           id: '1',
           title: '주간 회의',
@@ -88,6 +99,13 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
       server.use(
         http.get('/api/events', () => {
           return HttpResponse.json({ events: mockEvents });
+        }),
+        http.put('/api/events/:id', () => {
+          // PUT 요청 후 반복을 제거한 이벤트로 업데이트
+          mockEvents = mockEvents.map((event) =>
+            event.id === '1' ? { ...event, repeat: { type: 'none', interval: 1 } } : event
+          );
+          return HttpResponse.json(mockEvents[0]);
         })
       );
 
@@ -106,6 +124,10 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
       // When: 단일 수정("예") 완료
       const singleEditButton = await screen.findByRole('button', { name: /예/i });
       await user.click(singleEditButton);
+
+      // "일정 수정" 버튼 클릭
+      const submitButton = screen.getByTestId('event-submit-button');
+      await user.click(submitButton);
 
       // Then: 해당 일정의 반복일정 아이콘이 더 이상 렌더링되지 않음
       await waitFor(() => {
@@ -154,9 +176,17 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
         },
       ];
 
+      let updatedEvents = [...mockEvents];
+
       server.use(
         http.get('/api/events', () => {
-          return HttpResponse.json({ events: mockEvents });
+          return HttpResponse.json({ events: updatedEvents });
+        }),
+        http.put('/api/events/:id', async ({ params }) => {
+          updatedEvents = updatedEvents.map((event) =>
+            event.id === params.id ? { ...event, repeat: { type: 'none', interval: 1 } } : event
+          );
+          return HttpResponse.json({ ...mockEvents[0], repeat: { type: 'none', interval: 1 } });
         })
       );
 
@@ -171,6 +201,10 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
       // When: 특정 인스턴스를 단일 수정("예")
       const singleEditButton = await screen.findByRole('button', { name: /예/i });
       await user.click(singleEditButton);
+
+      // "일정 수정" 버튼 클릭
+      const submitButton = screen.getByTestId('event-submit-button');
+      await user.click(submitButton);
 
       // Then: 수정된 일정만 단일로 변경되고, 나머지 반복 일정은 그대로 유지됨
       const eventList = screen.getByTestId('event-list');
@@ -194,7 +228,7 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
           description: '매주 목요일 정기 회의',
           location: '회의실 A',
           category: '업무',
-          repeat: { type: 'weekly', interval: 1 },
+          repeat: { type: 'weekly', interval: 1, id: 'repeat-1' },
           notificationTime: 10,
         },
       ];
@@ -202,6 +236,9 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
       server.use(
         http.get('/api/events', () => {
           return HttpResponse.json({ events: mockEvents });
+        }),
+        http.put('/api/recurring-events/:repeatId', () => {
+          return HttpResponse.json(mockEvents);
         })
       );
 
@@ -216,6 +253,10 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
       // When: "해당 일정만 수정하시겠어요?" 모달에서 "아니오" 버튼 클릭
       const fullEditButton = await screen.findByRole('button', { name: /아니오/i });
       await user.click(fullEditButton);
+
+      // "일정 수정" 버튼 클릭
+      const submitButton = screen.getByTestId('event-submit-button');
+      await user.click(submitButton);
 
       // Then: 반복 설정이 변경되고, 반복 시리즈 전체에 적용됨
       await waitFor(() => {
@@ -235,7 +276,7 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
           description: '매주 목요일 정기 회의',
           location: '회의실 A',
           category: '업무',
-          repeat: { type: 'weekly', interval: 1 },
+          repeat: { type: 'weekly', interval: 1, id: 'repeat-1' },
           notificationTime: 10,
         },
       ];
@@ -243,6 +284,9 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
       server.use(
         http.get('/api/events', () => {
           return HttpResponse.json({ events: mockEvents });
+        }),
+        http.put('/api/recurring-events/:repeatId', () => {
+          return HttpResponse.json(mockEvents);
         })
       );
 
@@ -257,6 +301,10 @@ describe('반복 일정 기능 - 반복 일정 수정', () => {
       // When: 전체 수정("아니오") 완료
       const fullEditButton = await screen.findByRole('button', { name: /아니오/i });
       await user.click(fullEditButton);
+
+      // "일정 수정" 버튼 클릭
+      const submitButton = screen.getByTestId('event-submit-button');
+      await user.click(submitButton);
 
       // Then: 반복일정 아이콘이 여전히 렌더링됨
       const eventList = screen.getByTestId('event-list');
